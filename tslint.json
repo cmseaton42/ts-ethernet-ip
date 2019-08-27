@@ -5,6 +5,10 @@
         "tslint-config-prettier"
     ],
     "jsRules": {},
-    "rules": {},
+    "rules": {
+        "curly": [true, "ignore-same-line"],
+        "jsdoc-format": false,
+        "ordered-imports": false
+    },
     "rulesDirectory": []
 }
