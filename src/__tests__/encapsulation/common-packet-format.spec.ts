@@ -29,10 +29,13 @@ describe('Common Packet Format', () => {
     });
 
     it('Build method generates correct output', () => {
-        expect(() => CPF.build(test3)).toThrow();
         expect(CPF.build(test1)).toMatchSnapshot();
         expect(CPF.build(test2)).toMatchSnapshot();
     });
+
+    it('Build method throws with bad type id', () => {
+        expect(() => CPF.build(test3)).toThrow();
+    })
 
     it('Parse method generates appropriate output', () => {
         expect(CPF.parse(CPF.build(test1))).toMatchSnapshot();
