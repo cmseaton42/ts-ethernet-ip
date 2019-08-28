@@ -7,7 +7,7 @@ export enum TypeIDs {
     LIST_SERVICES = 0x100,
     SOCKET_ADDR_O2T = 0x8000,
     SOCKET_ADDR_T2O = 0x8001,
-    SEQUENCED_ADDR_ITEM = 0x8002
+    SEQUENCED_ADDR_ITEM = 0x8002,
 }
 
 export interface IDataItems {
@@ -17,9 +17,9 @@ export interface IDataItems {
 
 export abstract class CPF {
     /**
-    * Builds a Common Packet Formatted Buffer to be
-    * Encapsulated.
-    */
+     * Builds a Common Packet Formatted Buffer to be
+     * Encapsulated.
+     */
     public static build(dataItems: IDataItems[]): Buffer {
         // Write Item Count and Initialize Buffer
         let buf = Buffer.alloc(2);
@@ -30,7 +30,7 @@ export abstract class CPF {
 
             // Check valid command id passed
             const isCmd = TypeID in TypeIDs;
-            if (!isCmd) throw new Error("Invalid CPF Type ID!");
+            if (!isCmd) throw new Error('Invalid CPF Type ID!');
 
             const cpfHeader = Buffer.alloc(4);
             const dataBuf = Buffer.from(data);
@@ -49,9 +49,9 @@ export abstract class CPF {
     }
 
     /**
-    * Parses Incoming Common Packet Formatted Buffer
-    * and returns an Array of Objects.
-    */
+     * Parses Incoming Common Packet Formatted Buffer
+     * and returns an Array of Objects.
+     */
     public static parse(buf: Buffer): IDataItems[] {
         const itemCount = buf.readUInt16LE(0);
         const arr = [];

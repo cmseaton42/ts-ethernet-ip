@@ -35,7 +35,7 @@ describe('Common Packet Format Utility', () => {
 
     it('Throws with bad type id when building', () => {
         expect(() => CPF.build(test3)).toThrow();
-    })
+    });
 
     it('Parses received CPF packet', () => {
         expect(CPF.parse(CPF.build(test1))).toMatchSnapshot();

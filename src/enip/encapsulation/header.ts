@@ -6,23 +6,23 @@ import { CPF } from './common-packet-format';
 export const parseStatus = (status: number): string => {
     switch (status) {
         case 0x00:
-            return "SUCCESS";
+            return 'SUCCESS';
         case 0x01:
-            return "FAIL: Sender issued an invalid ecapsulation command.";
+            return 'FAIL: Sender issued an invalid ecapsulation command.';
         case 0x02:
-            return "FAIL: Insufficient memory resources to handle command.";
+            return 'FAIL: Insufficient memory resources to handle command.';
         case 0x03:
-            return "FAIL: Poorly formed or incorrect data in encapsulation packet.";
+            return 'FAIL: Poorly formed or incorrect data in encapsulation packet.';
         case 0x64:
-            return "FAIL: Originator used an invalid session handle.";
+            return 'FAIL: Originator used an invalid session handle.';
         case 0x65:
-            return "FAIL: Target received a message of invalid length.";
+            return 'FAIL: Target received a message of invalid length.';
         case 0x69:
-            return "FAIL: Unsupported encapsulation protocol revision.";
+            return 'FAIL: Unsupported encapsulation protocol revision.';
         default:
             return `FAIL: General failure - Error: <${status}> occured.`;
     }
-}
+};
 
 export enum Commands {
     NOP = 0x00,
@@ -34,7 +34,7 @@ export enum Commands {
     SEND_RR_DATA = 0x6f, // Send Unconnected Data Command
     SEND_UNIT_DATA = 0x70, // Send Connnected Data Command
     INDICATE_STATUS = 0x72,
-    CANCEL = 0x73
+    CANCEL = 0x73,
 }
 
 export interface IEncapsulationData {
@@ -50,11 +50,11 @@ export interface IEncapsulationData {
 
 export abstract class Header {
     /**
-    * Builds an ENIP Encapsolated Packet
-    */
+     * Builds an ENIP Encapsolated Packet
+     */
     public static build(cmd: Commands, session: number = 0x00, data: Buffer = Buffer.from([])): Buffer {
         const isValidCmd = cmd in Commands;
-        if (!isValidCmd) throw new Error("Invalid EIP Encapsulation Command Received!");
+        if (!isValidCmd) throw new Error('Invalid EIP Encapsulation Command Received!');
 
         const buf = Buffer.from(data);
         const send = {
@@ -64,7 +64,7 @@ export abstract class Header {
             status: 0x00,
             context: Buffer.alloc(8, 0x00),
             options: 0x00,
-            data: buf
+            data: buf,
         };
 
         // Initialize header buffer to appropriate length
@@ -83,8 +83,8 @@ export abstract class Header {
     }
 
     /**
-    * Parses an Encapsulated Packet Received from ENIP Target
-    */
+     * Parses an Encapsulated Packet Received from ENIP Target
+     */
     public static parse(buf: Buffer): IEncapsulationData {
         const commandCode = buf.readUInt16LE(0);
         const statusCode = buf.readUInt32LE(8);
@@ -97,7 +97,7 @@ export abstract class Header {
             statusCode,
             status: parseStatus(statusCode),
             options: buf.readUInt32LE(20),
-            data: null
+            data: null,
         };
 
         // Get Returned Encapsulated Data

@@ -11,7 +11,7 @@ export const registerSession = (): Buffer => {
 
     // Build Register Session Buffer and return it
     return Header.build(Commands.REGISTER_SESSION, 0x00, cmdBuf);
-}
+};
 
 /**
  * Returns an Unregister Session Request String
@@ -26,7 +26,7 @@ export const unregisterSession = (session: number): Buffer => {
 
 /**
  * Returns a UCMM Encapsulated Packet String
- * 
+ *
  * @param {number} [timeout=10] - Timeout (sec)
  */
 export const sendRRData = (session: number, data: Buffer, timeout: number = 10) => {
@@ -35,10 +35,7 @@ export const sendRRData = (session: number, data: Buffer, timeout: number = 10) 
     timeoutBuf.writeUInt16LE(timeout, 4); // Timeout (sec)
 
     // Enclose in Common Packet Format
-    let buf = CPF.build([
-        { TypeID: TypeIDs.NULL, data: Buffer.from([]) },
-        { TypeID: TypeIDs.UCMM, data }
-    ]);
+    let buf = CPF.build([{ TypeID: TypeIDs.NULL, data: Buffer.from([]) }, { TypeID: TypeIDs.UCMM, data }]);
 
     // Join Timeout Data with buffer
     buf = Buffer.concat([timeoutBuf, buf]);
@@ -63,20 +60,17 @@ export const sendUnitData = (session: number, data: Buffer, ConnectionID: number
     seqAddrBuf.writeUInt32LE(ConnectionID, 0);
     const seqNumberBuf = Buffer.alloc(2);
     seqNumberBuf.writeUInt16LE(SequnceNumber, 0);
-    const ndata = Buffer.concat([
-        seqNumberBuf,
-        data
-    ]);
+    const ndata = Buffer.concat([seqNumberBuf, data]);
 
     let buf = CPF.build([
         {
             TypeID: TypeIDs.CONNECTION_BASED,
-            data: seqAddrBuf
+            data: seqAddrBuf,
         },
         {
             TypeID: TypeIDs.CONNECTED_TRANSPORT_PACKET,
-            data: ndata
-        }
+            data: ndata,
+        },
     ]);
 
     // Join Timeout Data with
