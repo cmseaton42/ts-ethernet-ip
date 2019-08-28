@@ -1,4 +1,4 @@
-export enum ItemID {
+export enum TypeIDs {
     NULL = 0x00,
     LIST_IDENTITY = 0x0c,
     CONNECTION_BASED = 0xa1,
@@ -11,7 +11,7 @@ export enum ItemID {
 }
 
 export interface IDataItems {
-    TypeID: ItemID;
+    TypeID: TypeIDs;
     data: Buffer;
 }
 
@@ -29,7 +29,7 @@ export abstract class CPF {
             const { TypeID, data } = item;
 
             // Check valid command id passed
-            const isCmd = TypeID in ItemID;
+            const isCmd = TypeID in TypeIDs;
             if (!isCmd) throw new Error("Invalid CPF Type ID!");
 
             const cpfHeader = Buffer.alloc(4);
@@ -60,7 +60,7 @@ export abstract class CPF {
 
         for (let i = 0; i < itemCount; i++) {
             // Get Type ID
-            const TypeID: ItemID = buf.readUInt16LE(ptr);
+            const TypeID: TypeIDs = buf.readUInt16LE(ptr);
             ptr += 2;
 
             // Get Data Length

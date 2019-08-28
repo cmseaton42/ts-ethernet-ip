@@ -1,6 +1,6 @@
-import { CPF, ItemID, IDataItems } from '../../enip/encapsulation/common-packet-format';
+import { CPF, TypeIDs, IDataItems } from '../../enip/encapsulation/common-packet-format';
 
-describe('Common Packet Format', () => {
+describe('Common Packet Format Utility', () => {
     let empty: Buffer;
     let hwBuf: Buffer;
     let testBuf: Buffer;
@@ -13,31 +13,31 @@ describe('Common Packet Format', () => {
         hwBuf = Buffer.from('hello world');
         testBuf = Buffer.from('This is a test');
 
-        test1 = [{ TypeID: ItemID.NULL, data: empty }, { TypeID: ItemID.UCMM, data: hwBuf }];
+        test1 = [{ TypeID: TypeIDs.NULL, data: empty }, { TypeID: TypeIDs.UCMM, data: hwBuf }];
 
         test2 = [
-            { TypeID: ItemID.NULL, data: empty },
-            { TypeID: ItemID.UCMM, data: hwBuf },
-            { TypeID: ItemID.CONNECTION_BASED, data: testBuf },
+            { TypeID: TypeIDs.NULL, data: empty },
+            { TypeID: TypeIDs.UCMM, data: hwBuf },
+            { TypeID: TypeIDs.CONNECTION_BASED, data: testBuf },
         ];
 
         test3 = [
-            { TypeID: ItemID.NULL, data: empty },
-            { TypeID: ItemID.UCMM, data: hwBuf },
+            { TypeID: TypeIDs.NULL, data: empty },
+            { TypeID: TypeIDs.UCMM, data: hwBuf },
             { TypeID: 0xa4, data: testBuf }, // Invalid Type ID
         ];
     });
 
-    it('Build method generates correct output', () => {
+    it('Generates correct output', () => {
         expect(CPF.build(test1)).toMatchSnapshot();
         expect(CPF.build(test2)).toMatchSnapshot();
     });
 
-    it('Build method throws with bad type id', () => {
+    it('Throws with bad type id when building', () => {
         expect(() => CPF.build(test3)).toThrow();
     })
 
-    it('Parse method generates appropriate output', () => {
+    it('Parses received CPF packet', () => {
         expect(CPF.parse(CPF.build(test1))).toMatchSnapshot();
         expect(CPF.parse(CPF.build(test2))).toMatchSnapshot();
     });

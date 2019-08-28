@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Common Packet Format Build method generates correct output 1`] = `
+exports[`Common Packet Format Utility Generates correct output 1`] = `
 Object {
   "data": Array [
     2,
@@ -29,7 +29,7 @@ Object {
 }
 `;
 
-exports[`Common Packet Format Build method generates correct output 2`] = `
+exports[`Common Packet Format Utility Generates correct output 2`] = `
 Object {
   "data": Array [
     3,
@@ -76,7 +76,7 @@ Object {
 }
 `;
 
-exports[`Common Packet Format Parse method generates appropriate output 1`] = `
+exports[`Common Packet Format Utility Parses received CPF packet 1`] = `
 Array [
   Object {
     "TypeID": 0,
@@ -107,7 +107,7 @@ Array [
 ]
 `;
 
-exports[`Common Packet Format Parse method generates appropriate output 2`] = `
+exports[`Common Packet Format Utility Parses received CPF packet 2`] = `
 Array [
   Object {
     "TypeID": 0,
