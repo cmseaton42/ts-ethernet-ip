@@ -1,0 +1,90 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Encapsulation Header Header Utility Generates encapsulation buffer 1`] = `
+Object {
+  "data": Array [
+    101,
+    0,
+    4,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+  ],
+  "type": "Buffer",
+}
+`;
+
+exports[`Encapsulation Header Header Utility Generates encapsulation buffer 2`] = `
+Object {
+  "data": Array [
+    102,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+  ],
+  "type": "Buffer",
+}
+`;
+
+exports[`Encapsulation Header Header Utility Parses received encapsulation buffer 1`] = `
+Object {
+  "command": "SEND_RR_DATA",
+  "commandCode": 111,
+  "data": Object {
+    "data": Array [
+      1,
+      0,
+      0,
+      0,
+    ],
+    "type": "Buffer",
+  },
+  "length": 4,
+  "options": 0,
+  "session": 98705,
+  "status": "SUCCESS",
+  "statusCode": 0,
+}
+`;
