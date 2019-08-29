@@ -1,0 +1,62 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Connection Manager Build Forward Close Method Produces appropriate output 1`] = `
+Object {
+  "data": Array [
+    4,
+    125,
+    66,
+    66,
+    51,
+    51,
+    55,
+    19,
+    0,
+    0,
+  ],
+  "type": "Buffer",
+}
+`;
+
+exports[`Connection Manager Build Forward Open Method Produces appropriate output 1`] = `
+Object {
+  "data": Array [
+    4,
+    125,
+    17,
+    17,
+    17,
+    17,
+    34,
+    34,
+    34,
+    34,
+    66,
+    66,
+    51,
+    51,
+    55,
+    19,
+    0,
+    0,
+    3,
+    0,
+    0,
+    0,
+    16,
+    39,
+    0,
+    0,
+    244,
+    67,
+    16,
+    39,
+    0,
+    0,
+    244,
+    67,
+    163,
+  ],
+  "type": "Buffer",
+}
+`;
