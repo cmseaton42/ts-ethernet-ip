@@ -1,6 +1,6 @@
-import { build as DATA } from './data';
-import { build as LOGICAL } from './logical';
-import { build as PORT } from './port';
+import * as DATA from './data';
+import * as LOGICAL from './logical';
+import * as PORT from './port';
 
 enum Types {
     PORT = 0 << 5, // Communication Port to Leave Node (Shall be 1 for a Backplane), Link Address of Next Device
