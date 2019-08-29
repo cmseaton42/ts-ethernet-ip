@@ -1,44 +1,13 @@
 import { MessageRouter } from './message-router';
 import { segments } from './epath';
+import { generateEncodedTimeout } from './util';
 const { LOGICAL } = segments;
-
-export interface IUCMMSendTimeout {
-    time_tick: number;
-    ticks: number;
-}
 
 const UNCONNECTED_SEND_SERVICE = 0x52;
 const UNCONNECTED_SEND_PATH = Buffer.concat([
     LOGICAL.build(LOGICAL.Types.CLASS_ID, 0x06),
     LOGICAL.build(LOGICAL.Types.INSTANCE_ID, 1),
 ]);
-
-/**
- * Gets the Best Available Timeout Values
- *
- * @param {number} timeout - Desired Timeout in ms
- */
-export const generateEncodedTimeout = (timeout: number): IUCMMSendTimeout => {
-    if (timeout <= 0) throw new Error('Timeouts Must be Positive Integers');
-
-    let diff = Infinity; // let difference be very large
-    let time_tick = 0;
-    let ticks = 0;
-
-    // Search for Best Timeout Encoding Values
-    for (let i = 0; i < 16; i++) {
-        for (let j = 1; j < 256; j++) {
-            const newDiff = Math.abs(timeout - Math.pow(2, i) * j);
-            if (newDiff <= diff) {
-                diff = newDiff;
-                time_tick = i;
-                ticks = j;
-            }
-        }
-    }
-
-    return { time_tick, ticks };
-};
 
 /**
  * Builds an Unconnected Send Packet Buffer
