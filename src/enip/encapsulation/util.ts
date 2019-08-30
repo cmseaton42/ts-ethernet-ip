@@ -79,3 +79,21 @@ export const sendUnitData = (session: number, data: Buffer, ConnectionID: number
     // Build SendRRData Buffer
     return Header.build(Commands.SEND_UNIT_DATA, session, buf);
 };
+
+/**
+ * Returns a Connected Message Datagram (Transport Class 3) Buffer
+ *  -> Code Provided by GitHub@Penlane
+ */
+export const listIdentity = (): Buffer => {
+    // Build ListIdentity Buffer
+    return Header.build(Commands.LIST_IDENTITY, 0x00);
+};
+
+/**
+ * Returns a ListServices Buffer
+ *  -> Code Provided by GitHub@Penlane
+ */
+export const listServices = (): Buffer => {
+    // Build ListServices Buffer
+    return Header.build(Commands.LIST_SERVICES, 0x00);
+};
