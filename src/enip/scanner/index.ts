@@ -35,7 +35,7 @@ export class Scanner extends EventEmitter {
     /***************************************************************************
      * Property Initializations
      ***************************************************************************/
-    private socket: Socket;
+    protected socket: Socket;
     public readonly TCP: IConnStatus;
     public readonly session: ISessionStatus;
     public readonly connection: IConnectedStatus;
