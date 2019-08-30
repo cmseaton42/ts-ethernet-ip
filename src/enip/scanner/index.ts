@@ -147,7 +147,7 @@ export class Scanner extends EventEmitter {
     /**
      * Sends Unregister Session Command and Destroys Underlying TCP Socket
      */
-    destroy(exception: any = null) {
+    public destroy(exception: any = null) {
         const { unregisterSession } = encapsulation;
 
         if (this.session.id) {
@@ -163,13 +163,13 @@ export class Scanner extends EventEmitter {
     }
 
     /***************************************************************************
-     * Private Method Definitions
+     * Private and Protected Method Definitions
      ***************************************************************************/
 
     /**
      * Perform DNS Lookup on Passed IP Addr
      */
-    private _DNSLookup(IP_ADDR: string): Promise<undefined> {
+    protected _DNSLookup(IP_ADDR: string): Promise<undefined> {
         return new Promise<undefined>((resolve, reject) => {
             lookup(IP_ADDR, (err, addr) => {
                 if (err) reject(new Error('DNS Lookup failed for IP_ADDR ' + IP_ADDR));
@@ -185,7 +185,7 @@ export class Scanner extends EventEmitter {
     /**
      * Establish raw socket connection to target
      */
-    private _connect(IP_ADDR: string): Promise<undefined> {
+    protected _connect(IP_ADDR: string): Promise<undefined> {
         // Begin attempt to connect to EIP Device
         this.session.establishing = true;
         this.TCP.establishing = true;
@@ -210,7 +210,7 @@ export class Scanner extends EventEmitter {
     /**
      * Extract session ID from target if possible
      */
-    private _extractSessionID(): Promise<null | number> {
+    protected _extractSessionID(): Promise<null | number> {
         const sessionErr = new Error(
             'TIMEOUT occurred while attempting to establish Ethernet/IP session with Controller.',
         );
@@ -233,7 +233,7 @@ export class Scanner extends EventEmitter {
         );
     }
 
-    private _initializeEventHandlers() {
+    protected _initializeEventHandlers() {
         this.socket.on('data', this._handleDataEvent.bind(this));
         this.socket.on('close', this._handleCloseEvent.bind(this));
     }
@@ -243,7 +243,7 @@ export class Scanner extends EventEmitter {
      *
      * @param {Buffer} - Data Received from Socket.on('data', ...)
      */
-    private _handleDataEvent(data: Buffer) {
+    protected _handleDataEvent(data: Buffer) {
         const { Header, CPF, Commands } = encapsulation;
 
         const encapsulatedData = Header.parse(data);
@@ -297,7 +297,7 @@ export class Scanner extends EventEmitter {
     /**
      * Socket.on('close',...) Event Handler
      */
-    _handleCloseEvent(hadError: boolean) {
+    protected _handleCloseEvent(hadError: boolean) {
         this.session.established = false;
         this.TCP.established = false;
         if (hadError) throw new Error('Socket Transmission Failure Occurred!');
