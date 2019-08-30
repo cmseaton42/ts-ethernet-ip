@@ -5,7 +5,7 @@ import {
     sendUnitData,
     listIdentity,
     listServices,
-} from '../../enip/encapsulation/util';
+} from '../../../enip/encapsulation/util';
 
 describe('Encapsulation utility functions', () => {
     describe('Register session utility', () => {

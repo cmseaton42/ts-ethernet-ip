@@ -1,4 +1,4 @@
-import { CPF, TypeIDs, IDataItems } from '../../enip/encapsulation/common-packet-format';
+import { CPF, TypeIDs, IDataItems } from '../../../enip/encapsulation/common-packet-format';
 
 describe('Common Packet Format Utility', () => {
     let empty: Buffer;

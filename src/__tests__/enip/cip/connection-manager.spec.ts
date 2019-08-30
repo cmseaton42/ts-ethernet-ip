@@ -5,7 +5,7 @@ import {
     Priority,
     FixedVar,
     TimeoutMultiplier,
-} from '../../enip/cip/connection-manager';
+} from '../../../enip/cip/connection-manager';
 
 describe('Connection Manager', () => {
     describe('Build Forward Open Method', () => {
