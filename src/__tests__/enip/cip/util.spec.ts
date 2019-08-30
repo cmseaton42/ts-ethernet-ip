@@ -1,4 +1,4 @@
-import { generateEncodedTimeout } from '../../enip/cip/util';
+import { generateEncodedTimeout } from '../../../enip/cip/util';
 
 describe('CIP Utility Functions', () => {
     describe('Timeout Encoding Utility', () => {

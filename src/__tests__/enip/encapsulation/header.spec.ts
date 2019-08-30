@@ -1,4 +1,4 @@
-import { Commands, Header, parseStatus } from '../../enip/encapsulation/header';
+import { Commands, Header, parseStatus } from '../../../enip/encapsulation/header';
 
 describe('Encapsulation Header', () => {
     describe('Encapsulation Status Parser', () => {

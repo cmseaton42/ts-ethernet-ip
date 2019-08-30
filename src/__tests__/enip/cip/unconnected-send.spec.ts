@@ -1,6 +1,6 @@
-import { build } from '../../enip/cip/unconnected-send';
-import { MessageRouter } from '../../enip/cip/message-router';
-import { segments } from '../../enip/cip/epath/segments';
+import { build } from '../../../enip/cip/unconnected-send';
+import { MessageRouter } from '../../../enip/cip/message-router';
+import { segments } from '../../../enip/cip/epath/segments';
 const { PORT } = segments;
 
 describe('Unconnected Send Service', () => {

@@ -1,4 +1,4 @@
-import { build } from '../../../../enip/cip/epath/segments/port';
+import { build } from '../../../../../enip/cip/epath/segments/port';
 
 describe('EPATH', () => {
     describe('PORT Segment Build Utility', () => {

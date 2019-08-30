@@ -1,4 +1,4 @@
-import { MessageRouter as router } from '../../enip/cip/message-router';
+import { MessageRouter as router } from '../../../enip/cip/message-router';
 
 describe('Message Router', () => {
     describe('Builder', () => {

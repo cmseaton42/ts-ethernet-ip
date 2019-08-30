@@ -1,4 +1,4 @@
-import { build, Types } from '../../../../enip/cip/epath/segments/logical';
+import { build, Types } from '../../../../../enip/cip/epath/segments/logical';
 
 describe('EPATH', () => {
     describe('LOGICAL Segment Build Utility', () => {

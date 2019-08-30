@@ -1,4 +1,4 @@
-import { build, symbolicBuild } from '../../../../enip/cip/epath/segments/data';
+import { build, symbolicBuild } from '../../../../../enip/cip/epath/segments/data';
 
 describe('EPATH', () => {
     describe('DATA Segment Build Utility', () => {
