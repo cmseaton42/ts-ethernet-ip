@@ -1,5 +1,4 @@
 import { Scanner } from '../../../enip/scanner';
-import net from 'net';
 
 jest.mock('net');
 
