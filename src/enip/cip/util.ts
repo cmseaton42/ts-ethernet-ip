@@ -1,5 +1,5 @@
 export interface ITimeoutData {
-    time_tick: number;
+    timeTick: number;
     ticks: number;
 }
 
@@ -12,7 +12,7 @@ export const generateEncodedTimeout = (timeout: number): ITimeoutData => {
     if (timeout <= 0) throw new Error('Timeouts Must be Positive Integers');
 
     let diff = Infinity; // let difference be very large
-    let time_tick = 0;
+    let timeTick = 0;
     let ticks = 0;
 
     // Search for Best Timeout Encoding Values
@@ -21,11 +21,11 @@ export const generateEncodedTimeout = (timeout: number): ITimeoutData => {
             const newDiff = Math.abs(timeout - Math.pow(2, i) * j);
             if (newDiff <= diff) {
                 diff = newDiff;
-                time_tick = i;
+                timeTick = i;
                 ticks = j;
             }
         }
     }
 
-    return { time_tick, ticks };
+    return { timeTick, ticks };
 };

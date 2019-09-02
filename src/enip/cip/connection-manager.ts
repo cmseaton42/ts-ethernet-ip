@@ -105,7 +105,7 @@ export abstract class ConnectionManager {
         netConnParams: number = 0x43f4, // Determined for most EIP connections
         timeOutMs: number = 2000,
         timeOutMult: TimeoutMultiplier = TimeoutMultiplier.x32,
-        connSerialNum: number = CONN_SERIAL_NUM, //TODO: Make this unique
+        connSerialNum: number = CONN_SERIAL_NUM, // TODO: Make this unique
         vendorOrig: number = ORIG_VENDOR_ID,
     ): Buffer {
         if (timeOutMs <= 999) throw new Error('Timeouts Must be Positive Integers at least 1000');
@@ -118,7 +118,7 @@ export abstract class ConnectionManager {
         const buf = Buffer.alloc(35); // Normal forward open request
         const timeout = generateEncodedTimeout(timeOutMs);
 
-        buf.writeUInt8(timeout.time_tick, 0); // Priority / TimePerTick
+        buf.writeUInt8(timeout.timeTick, 0); // Priority / TimePerTick
         buf.writeUInt8(timeout.ticks, 1); // Timeout Ticks
         buf.writeUInt32LE(0x11111111, 2); // O->T Connection ID
         buf.writeUInt32LE(0x22222222, 6); // T->O Connection ID
@@ -150,7 +150,7 @@ export abstract class ConnectionManager {
         const buf = Buffer.alloc(10);
         const timeout = generateEncodedTimeout(timeOutMs);
 
-        buf.writeUInt8(timeout.time_tick, 0); // Priority / TimePerTick
+        buf.writeUInt8(timeout.timeTick, 0); // Priority / TimePerTick
         buf.writeUInt8(timeout.ticks, 1); // Timeout Ticks
         buf.writeUInt16LE(connSerialNum, 2); // Connection Serial Number
         buf.writeUInt16LE(vendorOrig, 4); // Originator VendorID

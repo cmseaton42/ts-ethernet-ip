@@ -32,14 +32,14 @@ type SocketWriteCallback = (err?: Error | undefined) => void;
  * Low Level Ethernet/IP Scanner
  */
 export class Scanner extends EventEmitter {
-    /***************************************************************************
-     * Property Initializations
-     ***************************************************************************/
-    protected socket: Socket;
     public readonly TCP: IConnStatus;
     public readonly session: ISessionStatus;
     public readonly connection: IConnectedStatus;
     public readonly error: IEIPError;
+    /***************************************************************************
+     * Property Initializations
+     ***************************************************************************/
+    protected socket: Socket;
 
     /***************************************************************************
      * New Instance Constructor
@@ -251,8 +251,6 @@ export class Scanner extends EventEmitter {
         const dataBuf = Buffer.isBuffer(rawDataBuf) ? rawDataBuf : Buffer.from('');
 
         if (statusCode !== 0) {
-            console.log(`Error <${statusCode}>:`, status);
-
             this.error.code = statusCode;
             this.error.msg = status;
 
@@ -273,7 +271,7 @@ export class Scanner extends EventEmitter {
                     this.emit('Session Unregistered');
                     break;
                 case Commands.SEND_RR_DATA: {
-                    let buf1 = Buffer.alloc(encapsulatedData.length - 6); // length of Data - Interface Handle <UDINT> and Timeout <UINT>
+                    const buf1 = Buffer.alloc(encapsulatedData.length - 6); // length of Data - Interface Handle <UDINT> and Timeout <UINT>
                     dataBuf.copy(buf1, 0, 6);
 
                     const srrd = CPF.parse(buf1);
@@ -281,7 +279,7 @@ export class Scanner extends EventEmitter {
                     break;
                 }
                 case Commands.SEND_UNIT_DATA: {
-                    let buf2 = Buffer.alloc(encapsulatedData.length - 6); // length of Data - Interface Handle <UDINT> and Timeout <UINT>
+                    const buf2 = Buffer.alloc(encapsulatedData.length - 6); // length of Data - Interface Handle <UDINT> and Timeout <UINT>
                     dataBuf.copy(buf2, 0, 6);
 
                     const sud = CPF.parse(buf2);
