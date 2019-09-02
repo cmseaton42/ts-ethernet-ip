@@ -1,7 +1,6 @@
 import { Socket, isIPv4 } from 'net';
 import { encapsulation } from '../encapsulation';
 import { EventEmitter } from 'events';
-import { cip } from '../cip';
 import { promiseTimeout } from '../../util';
 import { lookup } from 'dns';
 
