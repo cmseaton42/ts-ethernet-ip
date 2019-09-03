@@ -1,3 +1,9 @@
+# ⚠️ ⚠️ ⚠️ IMPORTANT NOTE ⚠️ ⚠️ ⚠️
+
+-   ❗️This repository is a testing ground for a full project rewrite (in typescript) of [node-ethernet-ip](https://github.com/cmseaton42/node-ethernet-ip). Once the rewrite is complete this repository **WILL** be **deprecated** and merged into the project as a new major revision (starting in a beta release).
+
+-   With that out of the way, feel free to look through source and provide any feedback you may have :beers: :rocket: :smile:
+
 <p align="center"><img width="280" src="https://i.imgur.com/HNxhZox.png" alt="Vue logo"></p>
 
 <div align="center">
