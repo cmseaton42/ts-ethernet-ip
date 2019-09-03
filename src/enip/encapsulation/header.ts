@@ -45,7 +45,7 @@ export interface IEncapsulationData {
     statusCode: number;
     status: string;
     options: number;
-    data: Buffer | null;
+    data: Buffer;
 }
 
 export abstract class Header {
@@ -97,7 +97,7 @@ export abstract class Header {
             statusCode,
             status: parseStatus(statusCode),
             options: buf.readUInt32LE(20),
-            data: null,
+            data: Buffer.from(''),
         };
 
         // Get Returned Encapsulated Data

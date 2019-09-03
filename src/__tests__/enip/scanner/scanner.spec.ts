@@ -1,5 +1,6 @@
 import { Scanner } from '../../../enip/scanner';
-import { sendUnitData, sendRRData } from '../../../enip/encapsulation/util';
+import { sendUnitData, sendRRData, unregisterSession, registerSession } from '../../../enip/encapsulation/util';
+import { encapsulation } from '../../../enip/encapsulation';
 
 jest.useFakeTimers();
 
@@ -272,6 +273,124 @@ describe('Generic EIP scanner', () => {
             test.emit('Session Registered', 0x1337);
 
             await expect(promise).resolves.toEqual(0x1337);
+        });
+    });
+
+    describe('_handleDataEvent Method', () => {
+        class HandleScanner extends Scanner {
+            constructor() {
+                super();
+
+                this.emit = jest.fn();
+            }
+        }
+        const { Header, Commands, CPF, TypeIDs } = encapsulation;
+        let test: HandleScanner;
+
+        beforeEach(() => {
+            jest.resetAllMocks();
+            test = new HandleScanner();
+        });
+
+        it('Sets error on bad response', () => {
+            const arg = Header.build(Commands.REGISTER_SESSION, 0x1337, Buffer.from('test'));
+
+            // Force error code
+            arg.writeUInt32LE(0x0001, 8);
+
+            test['_handleDataEvent'](arg);
+
+            expect(test.emit).toBeCalledTimes(1);
+            expect(test.emit).toBeCalledWith('Session Registration Failed', {
+                code: 0x0001,
+                msg: 'FAIL: Sender issued an invalid ecapsulation command.',
+            });
+        });
+
+        it('Handles header response <REGISTER_SESSION>', () => {
+            const arg = Header.build(Commands.REGISTER_SESSION, 0x1337, Buffer.from('test'));
+
+            test['_handleDataEvent'](arg);
+
+            expect(test.emit).toBeCalledTimes(1);
+            expect(test.emit).toBeCalledWith('Session Registered', 0x1337);
+        });
+
+        it('Handles header response <UNREGISTER_SESSION>', () => {
+            const arg = Header.build(Commands.UNREGISTER_SESSION, 0x1337, Buffer.from('test'));
+
+            test['_handleDataEvent'](arg);
+
+            expect(test.emit).toBeCalledTimes(1);
+            expect(test.emit).toBeCalledWith('Session Unregistered');
+        });
+
+        it('Handles header response <SEND_RR_DATA>', () => {
+            const cpf = CPF.build([{ TypeID: TypeIDs.NULL, data: Buffer.from([]) }]);
+
+            const buf = Buffer.alloc(cpf.length + 6);
+            cpf.copy(buf, 6, 0);
+
+            const arg = Header.build(Commands.SEND_RR_DATA, 0x1337, buf);
+
+            test['_handleDataEvent'](arg);
+
+            expect(test.emit).toBeCalledTimes(1);
+            expect(test.emit).toBeCalledWith('SendRRData Received', [{ TypeID: TypeIDs.NULL, data: Buffer.from([]) }]);
+        });
+
+        it('Handles header response <SEND_UNIT_DATA>', () => {
+            const cpf = CPF.build([{ TypeID: TypeIDs.NULL, data: Buffer.from([]) }]);
+
+            const buf = Buffer.alloc(cpf.length + 6);
+            cpf.copy(buf, 6, 0);
+
+            const arg = Header.build(Commands.SEND_UNIT_DATA, 0x1337, buf);
+
+            test['_handleDataEvent'](arg);
+
+            expect(test.emit).toBeCalledTimes(1);
+            expect(test.emit).toBeCalledWith('SendUnitData Received', [
+                { TypeID: TypeIDs.NULL, data: Buffer.from([]) },
+            ]);
+        });
+
+        it('Handles header response <UNKOWN>', () => {
+            const arg = Header.build(Commands.UNREGISTER_SESSION, 0x1337, Buffer.from('test'));
+
+            // Change to bad command
+            arg.writeUInt16LE(0x99, 0);
+
+            test['_handleDataEvent'](arg);
+
+            const encapsulated = {
+                command: undefined,
+                commandCode: 153,
+                data: Buffer.from('test'),
+                length: 4,
+                options: 0,
+                session: 0x1337,
+                status: 'SUCCESS',
+                statusCode: 0,
+            };
+
+            expect(test.emit).toBeCalledTimes(1);
+            expect(test.emit).toBeCalledWith('Unhandled Encapsulated Command Received', encapsulated);
+        });
+    });
+
+    describe('_handleCloseEvent Method', () => {
+        it('Throws on error', () => {
+            const test = new Scanner();
+
+            test['session'].established = true;
+            test['TCP'].established = true;
+            expect(test.session.established).toBeTruthy();
+            expect(test.TCP.established).toBeTruthy();
+
+            expect(() => test['_handleCloseEvent'](true)).toThrow();
+            expect(test.session.established).toBeFalsy();
+            expect(test.TCP.established).toBeFalsy();
         });
     });
 });

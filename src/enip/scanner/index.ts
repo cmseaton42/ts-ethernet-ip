@@ -32,6 +32,15 @@ export interface ITimeouts {
 
 type SocketWriteCallback = (err?: Error | undefined) => void;
 
+export enum ScannerEvents {
+    SESSION_REGISTERED = 'Session Registered',
+    SESSION_REG_FAILED = 'Session Registration Failed',
+    SESSION_UNREGISTERED = 'Session Unregistered',
+    SEND_RR_DATA_RECEIVED = 'SendRRData Received',
+    SEND_UNIT_DATA_RECEIVED = 'SendUnitData Received',
+    UNKNOWN = 'Unhandled Encapsulated Command Received',
+}
+
 /**
  * Low Level Ethernet/IP Scanner
  */
@@ -113,6 +122,7 @@ export class Scanner extends EventEmitter {
         this.socket.removeAllListeners('Session Registration Failed');
 
         if (!sessid) throw new Error('Failed to receive sessid from target');
+        this.session.id = sessid;
 
         // Return Session ID
         return sessid;
@@ -251,6 +261,7 @@ export class Scanner extends EventEmitter {
 
             this.on('Session Registration Failed', errorCode => {
                 this.session.establishing = false;
+                this.session.established = false;
                 this._setError(errorCode, 'Failed to register new EIP session');
                 reject(new Error('Failed to register new EIP session'));
             });
@@ -302,42 +313,39 @@ export class Scanner extends EventEmitter {
         const { Header, CPF, Commands } = encapsulation;
 
         const encapsulatedData = Header.parse(data);
-        const { statusCode, status, commandCode, data: rawDataBuf } = encapsulatedData;
-        const dataBuf = Buffer.isBuffer(rawDataBuf) ? rawDataBuf : Buffer.from('');
+        const { statusCode, status, commandCode, data: dataBuf, session, length } = encapsulatedData;
 
         if (statusCode !== 0) {
             this._setError(statusCode, status);
-            this.emit('Session Registration Failed', this.error);
+            this.emit(ScannerEvents.SESSION_REG_FAILED, this.error);
         } else {
             this._clearError();
 
             switch (commandCode) {
                 case Commands.REGISTER_SESSION:
-                    this.session.id = encapsulatedData.session;
-                    this.emit('Session Registered', this.session.id);
+                    this.emit(ScannerEvents.SESSION_REGISTERED, session);
                     break;
                 case Commands.UNREGISTER_SESSION:
-                    this.session.established = false;
-                    this.emit('Session Unregistered');
+                    this.emit(ScannerEvents.SESSION_UNREGISTERED);
                     break;
                 case Commands.SEND_RR_DATA: {
-                    const buf1 = Buffer.alloc(encapsulatedData.length - 6); // length of Data - Interface Handle <UDINT> and Timeout <UINT>
+                    const buf1 = Buffer.alloc(length - 6); // length of Data - Interface Handle <UDINT> and Timeout <UINT>
                     dataBuf.copy(buf1, 0, 6);
 
                     const srrd = CPF.parse(buf1);
-                    this.emit('SendRRData Received', srrd);
+                    this.emit(ScannerEvents.SEND_RR_DATA_RECEIVED, srrd);
                     break;
                 }
                 case Commands.SEND_UNIT_DATA: {
-                    const buf2 = Buffer.alloc(encapsulatedData.length - 6); // length of Data - Interface Handle <UDINT> and Timeout <UINT>
+                    const buf2 = Buffer.alloc(length - 6); // length of Data - Interface Handle <UDINT> and Timeout <UINT>
                     dataBuf.copy(buf2, 0, 6);
 
                     const sud = CPF.parse(buf2);
-                    this.emit('SendUnitData Received', sud);
+                    this.emit(ScannerEvents.SEND_UNIT_DATA_RECEIVED, sud);
                     break;
                 }
                 default:
-                    this.emit('Unhandled Encapsulated Command Received', encapsulatedData);
+                    this.emit(ScannerEvents.UNKNOWN, encapsulatedData);
             }
         }
     }
