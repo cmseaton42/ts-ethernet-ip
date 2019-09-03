@@ -1,5 +1,5 @@
 import { Scanner } from '../../../enip/scanner';
-import { sendUnitData, sendRRData, unregisterSession, registerSession } from '../../../enip/encapsulation/util';
+import { sendUnitData, sendRRData } from '../../../enip/encapsulation/util';
 import { encapsulation } from '../../../enip/encapsulation';
 
 jest.useFakeTimers();
