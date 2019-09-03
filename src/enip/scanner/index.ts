@@ -31,13 +31,13 @@ type SocketWriteCallback = (err?: Error | undefined) => void;
  * Low Level Ethernet/IP Scanner
  */
 export class Scanner extends EventEmitter {
+    /***************************************************************************
+     * Property Initializations
+     ***************************************************************************/
     public readonly TCP: IConnStatus;
     public readonly session: ISessionStatus;
     public readonly connection: IConnectedStatus;
     public readonly error: IEIPError;
-    /***************************************************************************
-     * Property Initializations
-     ***************************************************************************/
     protected socket: Socket;
 
     /***************************************************************************
@@ -152,13 +152,15 @@ export class Scanner extends EventEmitter {
         if (this.session.id) {
             this.write(unregisterSession(this.session.id), false, 10, () => {
                 this.session.established = false;
-                this.TCP.established = false;
+                this.session.establishing = false;
                 this.socket.destroy(exception);
             });
         } else {
-            this.TCP.established = false;
             this.socket.destroy(exception);
         }
+
+        this.TCP.established = false;
+        this.TCP.establishing = false;
     }
 
     /***************************************************************************
@@ -171,11 +173,12 @@ export class Scanner extends EventEmitter {
     protected _DNSLookup(IP_ADDR: string): Promise<undefined> {
         return new Promise<undefined>((resolve, reject) => {
             lookup(IP_ADDR, (err, addr) => {
-                if (err) reject(new Error('DNS Lookup failed for IP_ADDR ' + IP_ADDR));
+                if (err) throw new Error('DNS Lookup failed for IP_ADDR ' + IP_ADDR);
 
                 if (!isIPv4(addr)) {
-                    reject(new Error('Invalid IP_ADDR <string> passed to Controller <class>'));
+                    throw new Error('Invalid IP_ADDR <string> passed to Controller <class>');
                 }
+
                 resolve();
             });
         });
@@ -186,24 +189,28 @@ export class Scanner extends EventEmitter {
      */
     protected _connect(IP_ADDR: string): Promise<undefined> {
         // Begin attempt to connect to EIP Device
-        this.session.establishing = true;
         this.TCP.establishing = true;
 
         const connectErr = new Error('TIMEOUT occurred while attempting to establish TCP connection with Controller.');
 
-        // Connect to Controller and Then Send Register Session Packet
-        return promiseTimeout<undefined>(
-            new Promise(resolve => {
-                this.socket.connect(DEFAULT_EIP_PORT, IP_ADDR, () => {
-                    this.TCP.establishing = false;
-                    this.TCP.established = true;
+        const connectPromise = new Promise<undefined>(resolve => {
+            this.socket.connect(DEFAULT_EIP_PORT, IP_ADDR, () => {
+                this.TCP.establishing = false;
+                this.TCP.established = true;
 
-                    resolve();
-                });
-            }),
-            10000,
-            connectErr,
-        );
+                resolve();
+            });
+        });
+
+        const handleTimeout = (reject: Function) => {
+            this.session.establishing = false;
+            this._setError(0x9999, 'TIMEOUT: Establishing TCP/IP connection to host');
+
+            reject(connectErr);
+        };
+
+        // Connect to Controller and Then Send Register Session Packet
+        return promiseTimeout<undefined>(connectPromise, 10000, handleTimeout);
     }
 
     /**
@@ -221,15 +228,24 @@ export class Scanner extends EventEmitter {
                     resolve(sessid);
                 });
 
-                this.on('Session Registration Failed', error => {
-                    this.error.code = error;
-                    this.error.msg = 'Failed to Register Session';
+                this.on('Session Registration Failed', errorCode => {
+                    this._setError(errorCode, 'Failed to register session');
                     resolve(null);
                 });
             }),
             10000,
             sessionErr,
         );
+    }
+
+    protected _setError(code: number, msg: string): void {
+        this.error.code = code;
+        this.error.msg = msg;
+    }
+
+    protected _clearError(): void {
+        this.error.code = null;
+        this.error.msg = null;
     }
 
     protected _initializeEventHandlers() {

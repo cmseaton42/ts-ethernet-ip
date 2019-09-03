@@ -1,11 +1,13 @@
+import { callbackify } from 'util';
+
 const err = new Error('ASYNC Function Call Timed Out!!!');
 
 /**
  * Wraps a Promise with a Timeout
  */
-export function promiseTimeout<T>(promise: Promise<T>, ms: number, error: Error = err): Promise<T> {
+export function promiseTimeout<T>(promise: Promise<T>, ms: number, callback: (reject: Function) => void): Promise<T> {
     return new Promise((resolve, reject) => {
-        setTimeout(() => reject(error), ms);
+        setTimeout(() => callback(reject), ms);
         promise.then(resolve).catch(reject);
     });
 }

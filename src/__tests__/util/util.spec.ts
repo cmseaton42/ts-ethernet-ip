@@ -4,16 +4,18 @@ describe('Utilites', () => {
     describe('Promise Timeout Utility', () => {
         it('Resolves and Rejects as Expected', async () => {
             const fn = (ms: number, arg: any = null) => {
-                return promiseTimeout<undefined>(
-                    new Promise(resolve => {
-                        setTimeout(() => {
-                            if (arg) resolve(arg);
-                            resolve();
-                        }, ms);
-                    }),
-                    100,
-                    new Error('error'),
-                );
+                const testPromise = new Promise<undefined>(resolve => {
+                    setTimeout(() => {
+                        if (arg) resolve(arg);
+                        resolve();
+                    }, ms);
+                });
+
+                const handleTimeout = (reject: Function) => {
+                    reject(new Error('test timeout'));
+                };
+
+                return promiseTimeout<undefined>(testPromise, 100, handleTimeout);
             };
 
             await expect(fn(200)).rejects.toThrow();
@@ -34,7 +36,7 @@ describe('Utilites', () => {
                         resolve();
                     }),
                     100,
-                    new Error('error'),
+                    reject => reject(new Error('Error')),
                 );
             };
 
@@ -45,6 +47,7 @@ describe('Utilites', () => {
                         resolve();
                     }),
                     100,
+                    reject => reject(new Error('Error')),
                 );
             };
 
