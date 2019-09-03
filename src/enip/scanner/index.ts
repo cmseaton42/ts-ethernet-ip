@@ -132,26 +132,26 @@ export class Scanner extends EventEmitter {
         const { sendRRData, sendUnitData } = encapsulation;
         const { session, connection } = this;
 
-        if (!session.id) throw new Error('Must establish a connection before writing to target!');
+        if (!session.id || !session.established)
+            throw new Error('Must establish a connection before writing to target!');
 
-        if (session.established) {
-            if (connected === true) {
-                if (connection.established === true) {
-                    connection.seq_num += 1;
-                } else {
-                    throw new Error('Connected message request, but no connection established. Forgot forwardOpen?');
-                }
-            }
-            const packet =
-                connected && connection.id
-                    ? sendUnitData(session.id, data, connection.id, connection.seq_num)
-                    : sendRRData(session.id, data, timeout);
-
-            if (cb) {
-                this.socket.write(packet, 'utf8', cb);
+        if (connected) {
+            if (connection.established) {
+                connection.seq_num += 1;
             } else {
-                this.socket.write(packet);
+                throw new Error('Connected message request, but no connection established. Forgot forwardOpen?');
             }
+        }
+
+        const packet =
+            connected && connection.id
+                ? sendUnitData(session.id, data, connection.id, connection.seq_num)
+                : sendRRData(session.id, data, timeout);
+
+        if (cb) {
+            this.socket.write(packet, 'utf8', cb);
+        } else {
+            this.socket.write(packet);
         }
     }
 
