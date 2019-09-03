@@ -380,7 +380,7 @@ describe('Generic EIP scanner', () => {
     });
 
     describe('_handleCloseEvent Method', () => {
-        it('Throws on error', () => {
+        it('Consumes event properly', () => {
             const test = new Scanner();
 
             test['session'].established = true;
@@ -389,6 +389,15 @@ describe('Generic EIP scanner', () => {
             expect(test.TCP.established).toBeTruthy();
 
             expect(() => test['_handleCloseEvent'](true)).toThrow();
+            expect(test.session.established).toBeFalsy();
+            expect(test.TCP.established).toBeFalsy();
+
+            test['session'].established = true;
+            test['TCP'].established = true;
+            expect(test.session.established).toBeTruthy();
+            expect(test.TCP.established).toBeTruthy();
+
+            expect(() => test['_handleCloseEvent'](false)).not.toThrow();
             expect(test.session.established).toBeFalsy();
             expect(test.TCP.established).toBeFalsy();
         });
