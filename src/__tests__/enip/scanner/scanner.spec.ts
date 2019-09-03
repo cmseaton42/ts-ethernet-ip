@@ -1,7 +1,18 @@
 import { Scanner } from '../../../enip/scanner';
-import { sendUnitData, sendRRData, unregisterSession } from '../../../enip/encapsulation/util';
+import { sendUnitData, sendRRData } from '../../../enip/encapsulation/util';
 
 jest.mock('net');
+
+jest.mock('dns', () => ({
+    lookup: (hostname: string, callback: Function) => {
+        hostname === 'bad.com' || hostname === 'good.com'
+            ? hostname === 'bad.com'
+                ? callback(null, '1337')
+                : callback(null, '192.168.1.1')
+            : callback('error');
+    },
+}));
+
 jest.mock('../../../enip/encapsulation/util');
 
 describe('Generic EIP scanner', () => {
@@ -165,5 +176,25 @@ describe('Generic EIP scanner', () => {
             expect(test.write).not.toHaveBeenCalled();
             expect(test['socket'].destroy).toHaveBeenCalled();
         });
+    });
+
+    describe('_DNSLookup Method', () => {
+        it('Throws on bad DNS', () => {
+            const test = new Scanner();
+
+            expect(test['_DNSLookup']('bad-dns.com')).rejects.toThrow();
+        });
+
+        it('Throws on bad IP', () => {
+            const test = new Scanner();
+
+            expect(test['_DNSLookup']('bad.com')).rejects.toThrow();
+        });
+
+        // it('Resolves on good DNS', () => {
+        //     const test = new Scanner();
+
+        //     expect(test['_DNSLookup']('good.com')).resolves.toBeUndefined();
+        // });
     });
 });

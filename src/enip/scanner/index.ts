@@ -183,7 +183,7 @@ export class Scanner extends EventEmitter {
      * Perform DNS Lookup on Passed IP Addr
      */
     protected _DNSLookup(IP_ADDR: string): Promise<undefined> {
-        return new Promise<undefined>((resolve, reject) => {
+        return new Promise<undefined>(resolve => {
             lookup(IP_ADDR, (err, addr) => {
                 if (err) throw new Error('DNS Lookup failed for IP_ADDR ' + IP_ADDR);
 
