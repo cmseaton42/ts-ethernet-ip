@@ -93,7 +93,7 @@ export class Scanner extends EventEmitter {
     /**
      * Establish connection to target
      */
-    public async connect(IP_ADDR: string): Promise<number | null> {
+    public async connect(IP_ADDR: string): Promise<number> {
         // Check for valid DNS
         await this._DNSLookup(IP_ADDR);
 
@@ -111,6 +111,8 @@ export class Scanner extends EventEmitter {
         // Clean Up Local Listeners
         this.socket.removeAllListeners('Session Registered');
         this.socket.removeAllListeners('Session Registration Failed');
+
+        if (!sessid) throw new Error('Failed to receive sessid from target');
 
         // Return Session ID
         return sessid;
@@ -242,10 +244,13 @@ export class Scanner extends EventEmitter {
         // Atempt to establish session
         const sessionPromise = new Promise<null | number>((resolve, reject) => {
             this.on('Session Registered', sessid => {
+                this.session.establishing = false;
+                this.session.established = true;
                 resolve(sessid);
             });
 
             this.on('Session Registration Failed', errorCode => {
+                this.session.establishing = false;
                 this._setError(errorCode, 'Failed to register new EIP session');
                 reject(new Error('Failed to register new EIP session'));
             });
@@ -301,18 +306,13 @@ export class Scanner extends EventEmitter {
         const dataBuf = Buffer.isBuffer(rawDataBuf) ? rawDataBuf : Buffer.from('');
 
         if (statusCode !== 0) {
-            this.error.code = statusCode;
-            this.error.msg = status;
-
+            this._setError(statusCode, status);
             this.emit('Session Registration Failed', this.error);
         } else {
-            this.error.code = null;
-            this.error.msg = null;
+            this._clearError();
 
             switch (commandCode) {
                 case Commands.REGISTER_SESSION:
-                    this.session.establishing = false;
-                    this.session.established = true;
                     this.session.id = encapsulatedData.session;
                     this.emit('Session Registered', this.session.id);
                     break;

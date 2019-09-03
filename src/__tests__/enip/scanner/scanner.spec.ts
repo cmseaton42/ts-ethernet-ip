@@ -1,6 +1,8 @@
 import { Scanner } from '../../../enip/scanner';
 import { sendUnitData, sendRRData } from '../../../enip/encapsulation/util';
 
+jest.useFakeTimers();
+
 jest.mock('net');
 
 jest.mock('dns', () => ({
@@ -18,6 +20,13 @@ jest.mock('../../../enip/encapsulation/util');
 describe('Generic EIP scanner', () => {
     describe('Connect method', () => {
         class ConnectTester extends Scanner {
+            sessid: number | null;
+            constructor(id: null | number = 0x1337) {
+                super();
+
+                this.sessid = id;
+            }
+
             // Fake methods to be successful
             _DNSLookup(IP_ADDR: string): Promise<undefined> {
                 return new Promise(resolve => resolve());
@@ -27,14 +36,19 @@ describe('Generic EIP scanner', () => {
                 return new Promise(resolve => resolve());
             }
 
-            _extractSessionID(): Promise<number> {
-                return new Promise(resolve => resolve(0x1337));
+            _extractSessionID(): Promise<number | null> {
+                return new Promise(resolve => resolve(this.sessid));
             }
         }
 
         it('Returns sessid on success', () => {
             const test = new ConnectTester();
-            expect(test.connect('192.168.1.1')).resolves.toBe(0x1337);
+            return expect(test.connect('192.168.1.1')).resolves.toBe(0x1337);
+        });
+
+        it('Throws on null sessid', () => {
+            const test = new ConnectTester(null);
+            return expect(test.connect('192.168.1.1')).rejects.toThrow();
         });
     });
 
@@ -196,5 +210,68 @@ describe('Generic EIP scanner', () => {
 
         //     expect(test['_DNSLookup']('good.com')).resolves.toBeUndefined();
         // });
+    });
+
+    describe('_connect Method', () => {
+        it('Starts timeout', () => {
+            const test = new Scanner();
+            jest.resetAllMocks();
+
+            test['_connect']('192.168.1.1');
+
+            expect(setTimeout).toHaveBeenCalled();
+            expect(setTimeout).toHaveBeenLastCalledWith(expect.any(Function), test.timeouts.tcp);
+        });
+    });
+
+    describe('_setError Method', () => {
+        it('Sets error code and message', () => {
+            const test = new Scanner();
+            test['_setError'](0x1337, 'This is an error');
+
+            expect(test.error).toEqual({ code: 0x1337, msg: 'This is an error' });
+        });
+    });
+
+    describe('_clearError Method', () => {
+        it('Clears error code and message', () => {
+            const test = new Scanner();
+            test['_setError'](0x1337, 'This is an error');
+            expect(test.error).toEqual({ code: 0x1337, msg: 'This is an error' });
+
+            test['_clearError']();
+            expect(test.error).toEqual({ code: null, msg: null });
+        });
+    });
+
+    describe('_extractSessionID Method', () => {
+        it('Starts timeout', () => {
+            const test = new Scanner();
+            jest.resetAllMocks();
+
+            test['_extractSessionID']();
+
+            expect(setTimeout).toHaveBeenCalled();
+            expect(setTimeout).toHaveBeenLastCalledWith(expect.any(Function), test.timeouts.session);
+        });
+
+        it('Throws on failed session registration', async () => {
+            const test = new Scanner();
+            const promise = test['_extractSessionID']();
+
+            test.emit('Session Registration Failed', 0x1337);
+
+            await expect(promise).rejects.toThrow();
+            expect(test.error).toEqual({ code: 0x1337, msg: 'Failed to register new EIP session' });
+        });
+
+        it('Resolves on success session registration', async () => {
+            const test = new Scanner();
+            const promise = test['_extractSessionID']();
+
+            test.emit('Session Registered', 0x1337);
+
+            await expect(promise).resolves.toEqual(0x1337);
+        });
     });
 });
