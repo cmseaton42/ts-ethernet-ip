@@ -1,5 +1,5 @@
 import { Scanner } from '../../../enip/scanner';
-import { sendUnitData, sendRRData } from '../../../enip/encapsulation/util';
+import { sendUnitData, sendRRData, unregisterSession } from '../../../enip/encapsulation/util';
 
 jest.mock('net');
 jest.mock('../../../enip/encapsulation/util');
@@ -106,6 +106,64 @@ describe('Generic EIP scanner', () => {
             expect(test['socket'].write).toHaveBeenCalled();
             expect(test['socket'].write).toHaveBeenCalledWith(undefined);
             expect(test['socket'].write).not.toHaveBeenCalledWith(undefined, 'utf8', cb);
+        });
+    });
+
+    describe('Destroy method', () => {
+        type SocketWriteCallback = (err?: Error | undefined) => void;
+
+        interface ITestDefaults {
+            sessid?: number | null;
+            fn?: (data: Buffer, connected?: boolean, timeout?: number, cb?: SocketWriteCallback) => void;
+        }
+
+        class DestroyScanner extends Scanner {
+            constructor(opts: ITestDefaults = {}) {
+                super();
+
+                this.session.id = opts.sessid || null;
+                this.write = (opts.fn && opts.fn.bind(this)) || jest.fn();
+            }
+        }
+
+        beforeEach(() => {
+            jest.resetAllMocks();
+        });
+
+        it('When session id valid, verify write method call', () => {
+            const test = new DestroyScanner({ sessid: 0x1337 });
+
+            test.destroy();
+            expect(test.write).toHaveBeenCalled();
+        });
+
+        it('When session id valid, verify write method manipulates local state', () => {
+            const test = new DestroyScanner({ sessid: 0x1337 });
+
+            test.destroy();
+            expect(test.session.established).toBeFalsy();
+            expect(test.session.establishing).toBeFalsy();
+            expect(test.TCP.establishing).toBeFalsy();
+            expect(test.TCP.establishing).toBeFalsy();
+        });
+
+        it('When session id valid, verify write method manipulates local state', () => {
+            function fn(data: Buffer, connected?: boolean, timeout?: number, cb?: SocketWriteCallback) {
+                if (cb) cb();
+            }
+
+            const test = new DestroyScanner({ sessid: 0x1337, fn });
+
+            test.destroy();
+            expect(test['socket'].destroy).toHaveBeenCalled();
+        });
+
+        it('When session id invalid, verify write method call', () => {
+            const test = new DestroyScanner();
+
+            test.destroy();
+            expect(test.write).not.toHaveBeenCalled();
+            expect(test['socket'].destroy).toHaveBeenCalled();
         });
     });
 });
