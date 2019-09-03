@@ -25,6 +25,11 @@ export interface IEIPError {
     msg: null | string;
 }
 
+export interface ITimeouts {
+    session: number;
+    tcp: number;
+}
+
 type SocketWriteCallback = (err?: Error | undefined) => void;
 
 /**
@@ -38,6 +43,7 @@ export class Scanner extends EventEmitter {
     public readonly session: ISessionStatus;
     public readonly connection: IConnectedStatus;
     public readonly error: IEIPError;
+    public timeouts: ITimeouts;
     protected socket: Socket;
 
     /***************************************************************************
@@ -46,6 +52,7 @@ export class Scanner extends EventEmitter {
     constructor() {
         super();
 
+        // Initialize local state
         this.socket = new Socket();
         this.TCP = {
             established: false,
@@ -68,6 +75,11 @@ export class Scanner extends EventEmitter {
         this.error = {
             code: null,
             msg: null,
+        };
+
+        this.timeouts = {
+            session: 15000,
+            tcp: 15000,
         };
 
         // Initialize Event Handlers for Underlying Socket Class
@@ -193,6 +205,7 @@ export class Scanner extends EventEmitter {
 
         const connectErr = new Error('TIMEOUT occurred while attempting to establish TCP connection with Controller.');
 
+        // Atempt to connect to generic TCP/IP Socket
         const connectPromise = new Promise<undefined>(resolve => {
             this.socket.connect(DEFAULT_EIP_PORT, IP_ADDR, () => {
                 this.TCP.establishing = false;
@@ -202,52 +215,74 @@ export class Scanner extends EventEmitter {
             });
         });
 
+        // Handle a timeout event on failed connection
+        //   or connection taking too long
         const handleTimeout = (reject: Function) => {
-            this.session.establishing = false;
+            this.TCP.establishing = false;
             this._setError(0x9999, 'TIMEOUT: Establishing TCP/IP connection to host');
 
             reject(connectErr);
         };
 
         // Connect to Controller and Then Send Register Session Packet
-        return promiseTimeout<undefined>(connectPromise, 10000, handleTimeout);
+        return promiseTimeout<undefined>(connectPromise, this.timeouts.tcp, handleTimeout);
     }
 
     /**
      * Extract session ID from target if possible
      */
     protected _extractSessionID(): Promise<null | number> {
+        // Begin attempt to establish session EIP device
+        this.session.establishing = true;
+
         const sessionErr = new Error(
             'TIMEOUT occurred while attempting to establish Ethernet/IP session with Controller.',
         );
 
-        // Wait for Session to be Registered
-        return promiseTimeout<null | number>(
-            new Promise(resolve => {
-                this.on('Session Registered', sessid => {
-                    resolve(sessid);
-                });
+        // Atempt to establish session
+        const sessionPromise = new Promise<null | number>((resolve, reject) => {
+            this.on('Session Registered', sessid => {
+                resolve(sessid);
+            });
 
-                this.on('Session Registration Failed', errorCode => {
-                    this._setError(errorCode, 'Failed to register session');
-                    resolve(null);
-                });
-            }),
-            10000,
-            sessionErr,
-        );
+            this.on('Session Registration Failed', errorCode => {
+                this._setError(errorCode, 'Failed to register new EIP session');
+                reject(new Error('Failed to register new EIP session'));
+            });
+        });
+
+        // Handle a timeout event on failed connection
+        //   or connection taking too long
+        const handleTimeout = (reject: Function) => {
+            this.session.establishing = false;
+            this._setError(0x9999, 'TIMEOUT: Establishing EIP session connection to host');
+
+            reject(sessionErr);
+        };
+
+        // Wait for Session to be Registered
+        return promiseTimeout<null | number>(sessionPromise, this.timeouts.session, handleTimeout);
     }
 
-    protected _setError(code: number, msg: string): void {
+    /**
+     * Set internal error code and message
+     */
+    protected _setError(code: number | null, msg: string | null): void {
         this.error.code = code;
         this.error.msg = msg;
     }
 
+    /**
+     * Clear internal error code and message
+     */
     protected _clearError(): void {
         this.error.code = null;
         this.error.msg = null;
     }
 
+    /**
+     * Initialize local socket event handlers
+     */
     protected _initializeEventHandlers() {
         this.socket.on('data', this._handleDataEvent.bind(this));
         this.socket.on('close', this._handleCloseEvent.bind(this));
