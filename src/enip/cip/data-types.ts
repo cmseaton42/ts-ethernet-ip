@@ -1,4 +1,4 @@
-export enum Types {
+export enum DataTypes {
     BOOL = 0xc1,
     SINT = 0xc2,
     INT = 0xc3,
