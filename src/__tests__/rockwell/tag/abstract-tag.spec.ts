@@ -1,6 +1,6 @@
-import { Tag, ITagOptions } from '../../../rockwell/tag/base';
+import { ATag, ITagOptions } from '../../../rockwell/tag/abstract-tag';
 
-class Tester extends Tag<boolean> {
+class Tester extends ATag<boolean> {
     constructor(tagname: string, options: ITagOptions = {}) {
         super(tagname, options);
     }
@@ -28,10 +28,6 @@ class Tester extends Tag<boolean> {
     _setInitialValue() {
         return true;
     }
-
-    _setTagValue(value: boolean) {
-        this.tag.value = value;
-    }
 }
 
 describe('Tag Base Class', () => {
@@ -52,7 +48,7 @@ describe('Tag Base Class', () => {
 
     describe('Tag Validator Method', () => {
         it('Judges correctly while accepting bit indexes', () => {
-            const fn = (test: string) => Tag.isValidTagname(test);
+            const fn = (test: string) => Tester.isValidTagname(test);
 
             expect(fn('_sometagname')).toBeTruthy();
             expect(fn(`hello${311}`)).toBeTruthy();
@@ -104,7 +100,7 @@ describe('Tag Base Class', () => {
         });
 
         it('Judges correctly while not accepting bit indexes', () => {
-            const fn = (test: string) => Tag.isValidTagname(test, false);
+            const fn = (test: string) => Tester.isValidTagname(test, false);
 
             expect(fn('_sometagname')).toBeTruthy();
             expect(fn(`hello${311}`)).toBeTruthy();

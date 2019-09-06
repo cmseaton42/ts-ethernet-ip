@@ -1,10 +1,6 @@
 import { EventEmitter } from 'events';
-import dateFormat from 'dateformat';
 import uuid from 'uuid/v4';
-import { enip } from '../../enip';
 import { DataTypes } from '../../enip/cip/data-types';
-
-const { MessageRouter, Services } = enip.CIP;
 
 export interface ITagOptions {
     program?: string | null;
@@ -20,7 +16,7 @@ export interface ITagData<T> {
     value: T;
 }
 
-export abstract class Tag<T> extends EventEmitter {
+export abstract class ATag<T> extends EventEmitter {
     static instances: number = 0;
     public readonly instance_id: string;
     public readonly path: Buffer;
@@ -41,14 +37,16 @@ export abstract class Tag<T> extends EventEmitter {
         opts.instance_id = options.instance_id || null;
 
         // Perform error checking
-        if (!Tag.isValidTagname(tagname)) throw new Error('Invalid tagname given');
+        if (!ATag.isValidTagname(tagname)) throw new Error('Invalid tagname given');
         if (opts.keepAlive < 0) throw new Error('Keepalive must be greater than 0');
         if (opts.datatype && !(opts.datatype in DataTypes)) {
             throw new Error('Invalid CIP DataType given');
         }
 
+        this.path = this._generatePath();
+
         // Perform general instance setup
-        Tag.instances += 1;
+        ATag.instances += 1;
         this.stage_write = false;
         this.instance_id = uuid();
         this.datatype = opts.datatype;
@@ -59,17 +57,14 @@ export abstract class Tag<T> extends EventEmitter {
             instance_id: opts.instance_id,
             value: this._setInitialValue(),
         };
-
-        this.path = this._generatePath();
     }
 
     public abstract buildReadRequest(): Buffer;
     public abstract parseReadResponse(data: Buffer): void;
-    public abstract buildWriteRequest(value: T): Buffer;
+    public abstract buildWriteRequest(value: T | null): Buffer;
     public abstract parseWriteResponse(data: Buffer): void;
 
     protected abstract _setInitialValue(): T;
-    protected abstract _setTagValue(value: T): void;
     protected abstract _generatePath(): Buffer;
 
     /**
