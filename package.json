@@ -32,10 +32,6 @@
     "author": "Canaan Seaton",
     "license": "MIT",
     "devDependencies": {
-        "@types/dateformat": "^3.0.0",
-        "@types/jest": "^24.0.18",
-        "@types/node": "^12.7.2",
-        "@types/uuid": "^3.4.5",
         "jest": "^24.9.0",
         "prettier": "^1.18.2",
         "ts-jest": "^24.0.2",
@@ -47,6 +43,10 @@
         "lib/**/*"
     ],
     "dependencies": {
+        "@types/dateformat": "^3.0.0",
+        "@types/jest": "^24.0.18",
+        "@types/node": "^12.7.2",
+        "@types/uuid": "^3.4.5",
         "dateformat": "^3.0.3",
         "task-easy": "^0.2.0",
         "uuid": "^3.3.3"
