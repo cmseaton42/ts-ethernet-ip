@@ -1,5 +1,6 @@
 import { EventEmitter } from 'events';
 import uuid from 'uuid/v4';
+import dateformat from 'dateformat';
 import { DataTypes } from '../../enip/cip/data-types';
 
 export interface ITagOptions {
@@ -14,12 +15,15 @@ export interface ITagData<T> {
     name: string;
     instance_id: number | null;
     value: T;
+    controllerValue: T;
+    timestamp: Date;
 }
 
 export abstract class ATag<T> extends EventEmitter {
     static instances: number = 0;
     public readonly instance_id: string;
     public readonly path: Buffer;
+    public readonly initialized: boolean;
 
     protected stage_write: boolean;
     protected datatype: DataTypes | null;
@@ -48,6 +52,7 @@ export abstract class ATag<T> extends EventEmitter {
         // Perform general instance setup
         ATag.instances += 1;
         this.stage_write = false;
+        this.initialized = false;
         this.instance_id = uuid();
         this.datatype = opts.datatype;
         this.keep_alive = opts.keepAlive;
@@ -56,13 +61,14 @@ export abstract class ATag<T> extends EventEmitter {
             name: tagname,
             instance_id: opts.instance_id,
             value: this._setInitialValue(),
+            controllerValue: this._setInitialValue(),
+            timestamp: new Date(),
         };
     }
 
     public abstract buildReadRequest(): Buffer;
     public abstract parseReadResponse(data: Buffer): void;
     public abstract buildWriteRequest(value: T | null): Buffer;
-    public abstract parseWriteResponse(data: Buffer): void;
 
     protected abstract _setInitialValue(): T;
     protected abstract _generatePath(): Buffer;
@@ -112,5 +118,13 @@ export abstract class ATag<T> extends EventEmitter {
 
         // passed all tests
         return true;
+    }
+
+    public get timestamp() {
+        return dateformat(this.tag.timestamp, 'mm/dd/yyyy-HH:MM:ss.l');
+    }
+
+    public get timestamp_raw() {
+        return this.tag.timestamp;
     }
 }

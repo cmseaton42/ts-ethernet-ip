@@ -1,4 +1,7 @@
 import { ATag, ITagOptions } from '../../../rockwell/tag/abstract-tag';
+import MockDate from 'mockdate';
+
+MockDate.set('1999-12-25');
 
 class Tester extends ATag<boolean> {
     constructor(tagname: string, options: ITagOptions = {}) {
@@ -43,6 +46,15 @@ describe('Tag Base Class', () => {
             expect(fn('someTag', { program: 'prog', datatype: 0xc1 })).not.toThrow();
             expect(fn('someTag', { keepAlive: 10 })).not.toThrow();
             expect(fn('someTag', { keepAlive: -10 })).toThrow();
+        });
+    });
+
+    describe('Get Timestamp Accessors', () => {
+        it('Return appropriate timestamp', () => {
+            const test = new Tester('someTag');
+
+            expect(test.timestamp).toEqual('12/24/1999-16:00:00.000');
+            expect(test.timestamp_raw).toEqual(new Date('1999-12-25'));
         });
     });
 

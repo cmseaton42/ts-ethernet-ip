@@ -30,3 +30,19 @@ export enum DataTypes {
     STRINGI = 0xde,
     STRUCT = 0xa002,
 }
+
+export enum Atomics {
+    BOOL = 0xc1,
+    SINT = 0xc2,
+    INT = 0xc3,
+    DINT = 0xc4,
+    LINT = 0xc5,
+    USINT = 0xc6,
+    UINT = 0xc7,
+    UDINT = 0xc8,
+    REAL = 0xca,
+    LREAL = 0xcb,
+    WORD = 0xd1,
+    DWORD = 0xd2,
+    BIT_STRING = 0xd3,
+}
