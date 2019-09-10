@@ -144,8 +144,9 @@ export class Scanner extends EventEmitter {
         const { sendRRData, sendUnitData } = encapsulation;
         const { session, connection } = this;
 
-        if (!session.id || !session.established)
+        if (!session.id || !session.established) {
             throw new Error('Must establish a connection before writing to target!');
+        }
 
         if (connected) {
             if (connection.established) {
@@ -229,7 +230,7 @@ export class Scanner extends EventEmitter {
 
         // Handle a timeout event on failed connection
         //   or connection taking too long
-        const handleTimeout = (reject: Function) => {
+        const handleTimeout = (reject: (err: Error) => void) => {
             this.TCP.establishing = false;
             this._setError(0x9999, 'TIMEOUT: Establishing TCP/IP connection to host');
 
@@ -269,7 +270,7 @@ export class Scanner extends EventEmitter {
 
         // Handle a timeout event on failed connection
         //   or connection taking too long
-        const handleTimeout = (reject: Function) => {
+        const handleTimeout = (reject: (err: Error) => void) => {
             this.session.establishing = false;
             this._setError(0x9999, 'TIMEOUT: Establishing EIP session connection to host');
 

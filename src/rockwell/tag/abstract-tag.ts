@@ -20,7 +20,62 @@ export interface ITagData<T> {
 }
 
 export abstract class ATag<T> extends EventEmitter {
-    static instances: number = 0;
+
+    public get timestamp() {
+        return dateformat(this.tag.timestamp, 'mm/dd/yyyy-HH:MM:ss.l');
+    }
+
+    public get timestamp_raw() {
+        return this.tag.timestamp;
+    }
+    public static instances: number = 0;
+
+    /**
+     * Determines if a Tagname is Valid
+     *
+     * --> Originially contributed by GitHub@jhenson29
+     */
+    public static isValidTagname(tagname: string, acceptBitIndex: boolean = true): boolean {
+        // regex components
+        const nameRegex = (captureIndex: number) => {
+            return `(_?[a-zA-Z]|_\\d)(?:(?=(_?[a-zA-Z0-9]))\\${captureIndex})*`;
+        };
+
+        const multDimArrayRegex = '(\\[\\d+(,\\d+){0,2}])';
+        const arrayRegex = '(\\[\\d+])';
+        const bitIndexRegex = '(\\.\\d{1,2})';
+
+        // user regex for user tags
+        let userRegString = '^(Program:' + nameRegex(3) + '\\.)?'; // optional program name
+        userRegString += nameRegex(5) + multDimArrayRegex + '?'; // tag name
+        userRegString += '(\\.' + nameRegex(10) + arrayRegex + '?)*'; // option member name
+        userRegString += bitIndexRegex + '?$';
+
+        const userRegex = new RegExp(userRegString); // optional bit index
+
+        // module regex for module tags
+        let moduleRegString = '^' + nameRegex(2); // module name
+        moduleRegString += '(:\\d{1,2})?'; // optional slot num (not required for rack optimized connections)
+        moduleRegString += ':[IOC]'; // input/output/config
+        moduleRegString += '(\\.' + nameRegex(6) + arrayRegex;
+        moduleRegString += '?)?'; // optional member with optional array index
+        moduleRegString += bitIndexRegex + '?$';
+
+        const moduleRegex = new RegExp(moduleRegString); // optional bit index
+
+        if (!userRegex.test(tagname) && !moduleRegex.test(tagname)) return false;
+
+        if (!acceptBitIndex) {
+            const bitRegex = new RegExp(`${bitIndexRegex}$`);
+            if (bitRegex.test(tagname)) return false;
+        }
+
+        // check segments
+        if (tagname.split(/[:.[\],]/).filter(segment => segment.length > 40).length > 0) return false; // check that all segments are <= 40 char
+
+        // passed all tests
+        return true;
+    }
     public readonly instance_id: string;
     public readonly path: Buffer;
     public readonly initialized: boolean;
@@ -72,59 +127,4 @@ export abstract class ATag<T> extends EventEmitter {
 
     protected abstract _setInitialValue(): T;
     protected abstract _generatePath(): Buffer;
-
-    /**
-     * Determines if a Tagname is Valid
-     *
-     * --> Originially contributed by GitHub@jhenson29
-     */
-    static isValidTagname(tagname: string, acceptBitIndex: boolean = true): boolean {
-        // regex components
-        const nameRegex = (captureIndex: number) => {
-            return `(_?[a-zA-Z]|_\\d)(?:(?=(_?[a-zA-Z0-9]))\\${captureIndex})*`;
-        };
-
-        const multDimArrayRegex = '(\\[\\d+(,\\d+){0,2}])';
-        const arrayRegex = '(\\[\\d+])';
-        const bitIndexRegex = '(\\.\\d{1,2})';
-
-        // user regex for user tags
-        let userRegString = '^(Program:' + nameRegex(3) + '\\.)?'; // optional program name
-        userRegString += nameRegex(5) + multDimArrayRegex + '?'; // tag name
-        userRegString += '(\\.' + nameRegex(10) + arrayRegex + '?)*'; // option member name
-        userRegString += bitIndexRegex + '?$';
-
-        const userRegex = new RegExp(userRegString); // optional bit index
-
-        // module regex for module tags
-        let moduleRegString = '^' + nameRegex(2); // module name
-        moduleRegString += '(:\\d{1,2})?'; // optional slot num (not required for rack optimized connections)
-        moduleRegString += ':[IOC]'; // input/output/config
-        moduleRegString += '(\\.' + nameRegex(6) + arrayRegex;
-        moduleRegString += '?)?'; // optional member with optional array index
-        moduleRegString += bitIndexRegex + '?$';
-
-        const moduleRegex = new RegExp(moduleRegString); // optional bit index
-
-        if (!userRegex.test(tagname) && !moduleRegex.test(tagname)) return false;
-
-        if (!acceptBitIndex) {
-            const bitRegex = new RegExp(`${bitIndexRegex}$`);
-            if (bitRegex.test(tagname)) return false;
-        }
-
-        // check segments
-        if (tagname.split(/[:.[\],]/).filter(segment => segment.length > 40).length > 0) return false; // check that all segments are <= 40 char
-
-        // passed all tests
-        return true;
-    }
-
-    public get timestamp() {
-        return dateformat(this.tag.timestamp, 'mm/dd/yyyy-HH:MM:ss.l');
-    }
-
-    public get timestamp_raw() {
-        return this.tag.timestamp;
-    }
 }

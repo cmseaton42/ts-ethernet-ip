@@ -13,6 +13,16 @@ export enum TagEvents {
 
 export class Tag extends ATag<number> {
     /***************************************************************************
+     * Property Accessors
+     ***************************************************************************/
+    public get value() {
+        if (this.datatype === DataTypes.BOOL || this.isBitIndex) {
+            return this.tag.value === 1 ? true : false;
+        }
+
+        return this.tag.value;
+    }
+    /***************************************************************************
      * Property Initializations
      ***************************************************************************/
     protected isBitIndex: boolean = false;
@@ -67,6 +77,83 @@ export class Tag extends ATag<number> {
 
         if (this.isBitIndex) this._parseReadResponseBit(data);
         else this._parseReadResponse(data);
+    }
+
+    /**
+     *  Parses Good Read Request Messages Using A Mask For A Specified Bit Index
+     *
+     */
+    public _parseReadResponseBit(data: Buffer) {
+        const { SINT, USINT, INT, UINT, DINT, UDINT, BIT_STRING } = DataTypes;
+        const offsetWord = 1 << this.bitOffset;
+
+        let value: number;
+
+        // Read Tag Value
+        switch (this.datatype) {
+            case SINT:
+                value = (data.readInt8(2) & offsetWord) === 0 ? 0 : 1;
+                break;
+            case USINT:
+                value = (data.readUInt8(2) & offsetWord) === 0 ? 0 : 1;
+                break;
+            case INT:
+                value = (data.readInt16LE(2) & offsetWord) === 0 ? 0 : 1;
+                break;
+            case UINT:
+                value = (data.readUInt16LE(2) & offsetWord) === 0 ? 0 : 1;
+                break;
+            case DINT:
+            case BIT_STRING:
+                value = (data.readInt32LE(2) & offsetWord) === 0 ? 0 : 1;
+                break;
+            case UDINT:
+                value = (data.readUInt32LE(2) & offsetWord) === 0 ? 0 : 1;
+                break;
+            default:
+                throw new Error('Invalid datatype returned when a Bit Index was requested');
+        }
+
+        this._setControllerValue(value);
+    }
+
+    /**
+     *  Parses Good Read Request Messages
+     *
+     */
+    public _parseReadResponse(data: Buffer) {
+        const { SINT, USINT, INT, UINT, DINT, UDINT, REAL } = DataTypes;
+
+        let value: number;
+
+        // Read Tag Value
+        switch (this.datatype) {
+            case SINT:
+                value = data.readInt8(2);
+                break;
+            case USINT:
+                value = data.readUInt8(2);
+                break;
+            case INT:
+                value = data.readInt16LE(2);
+                break;
+            case UINT:
+                value = data.readUInt16LE(2);
+                break;
+            case DINT:
+                value = data.readInt32LE(2);
+                break;
+            case UDINT:
+                value = data.readUInt32LE(2);
+                break;
+            case REAL:
+                value = data.readFloatLE(2);
+                break;
+            default:
+                throw new Error('Invalid datatype returned when a Bit Index was requested');
+        }
+
+        this._setControllerValue(value);
     }
 
     /***************************************************************************
@@ -151,20 +238,20 @@ export class Tag extends ATag<number> {
         switch (this.datatype) {
             case DataTypes.SINT:
                 buf = Buffer.alloc(4); // 2 bytes + 1 byte + 1 byte
-                buf.writeInt16LE(1, 0); //mask length
+                buf.writeInt16LE(1, 0); // mask length
                 buf.writeUInt8(value === 1 ? 1 << this.bitOffset : 0, 2); // or mask
                 buf.writeUInt8(value === 1 ? 255 : 255 & ~(1 << this.bitOffset), 3); // and mask
                 break;
             case DataTypes.INT:
                 buf = Buffer.alloc(6); // 2 bytes + 2 bytes + 2 bytes
-                buf.writeInt16LE(2, 0); //mask length
+                buf.writeInt16LE(2, 0); // mask length
                 buf.writeUInt16LE(value === 1 ? 1 << this.bitOffset : 0, 2); // or mask
                 buf.writeUInt16LE(value === 1 ? 65535 : 65535 & ~(1 << this.bitOffset), 4); // and mask
                 break;
             default:
                 // DINT, BIT_STRING
                 buf = Buffer.alloc(10); // 2 bytes + 4 bytes + 4 bytes
-                buf.writeInt16LE(4, 0); //mask length
+                buf.writeInt16LE(4, 0); // mask length
                 buf.writeInt32LE(value === 1 ? 1 << this.bitOffset : 0, 2); // or mask
                 buf.writeInt32LE(value === 1 ? -1 : -1 & ~(1 << this.bitOffset), 6); // and mask
                 break;
@@ -172,83 +259,6 @@ export class Tag extends ATag<number> {
 
         // Build Current Message
         return MsgRtr.build(Services.READ_MODIFY_WRITE_TAG, this.path, buf);
-    }
-
-    /**
-     *  Parses Good Read Request Messages Using A Mask For A Specified Bit Index
-     *
-     */
-    _parseReadResponseBit(data: Buffer) {
-        const { SINT, USINT, INT, UINT, DINT, UDINT, BIT_STRING } = DataTypes;
-        const offsetWord = 1 << this.bitOffset;
-
-        let value: number;
-
-        // Read Tag Value
-        switch (this.datatype) {
-            case SINT:
-                value = (data.readInt8(2) & offsetWord) == 0 ? 0 : 1;
-                break;
-            case USINT:
-                value = (data.readUInt8(2) & offsetWord) == 0 ? 0 : 1;
-                break;
-            case INT:
-                value = (data.readInt16LE(2) & offsetWord) == 0 ? 0 : 1;
-                break;
-            case UINT:
-                value = (data.readUInt16LE(2) & offsetWord) == 0 ? 0 : 1;
-                break;
-            case DINT:
-            case BIT_STRING:
-                value = (data.readInt32LE(2) & offsetWord) == 0 ? 0 : 1;
-                break;
-            case UDINT:
-                value = (data.readUInt32LE(2) & offsetWord) == 0 ? 0 : 1;
-                break;
-            default:
-                throw new Error('Invalid datatype returned when a Bit Index was requested');
-        }
-
-        this._setControllerValue(value);
-    }
-
-    /**
-     *  Parses Good Read Request Messages
-     *
-     */
-    _parseReadResponse(data: Buffer) {
-        const { SINT, USINT, INT, UINT, DINT, UDINT, REAL } = DataTypes;
-
-        let value: number;
-
-        // Read Tag Value
-        switch (this.datatype) {
-            case SINT:
-                value = data.readInt8(2);
-                break;
-            case USINT:
-                value = data.readUInt8(2);
-                break;
-            case INT:
-                value = data.readInt16LE(2);
-                break;
-            case UINT:
-                value = data.readUInt16LE(2);
-                break;
-            case DINT:
-                value = data.readInt32LE(2);
-                break;
-            case UDINT:
-                value = data.readUInt32LE(2);
-                break;
-            case REAL:
-                value = data.readFloatLE(2);
-                break;
-            default:
-                throw new Error('Invalid datatype returned when a Bit Index was requested');
-        }
-
-        this._setControllerValue(value);
     }
 
     /**
@@ -277,7 +287,7 @@ export class Tag extends ATag<number> {
             this.bitOffset = 0;
         }
 
-        return bitResult ? bitResult['index'] : null;
+        return bitResult ? bitResult.index : null;
     }
 
     /**
@@ -288,7 +298,7 @@ export class Tag extends ATag<number> {
         const { name } = this.tag;
         const bitIndex = this._extractBitIndex(name);
 
-        let tagname = bitIndex ? name.slice(0, bitIndex) : name;
+        const tagname = bitIndex ? name.slice(0, bitIndex) : name;
 
         // Split by "." for memebers
         // Split by "[" or "]" for array indexes
@@ -342,16 +352,5 @@ export class Tag extends ATag<number> {
                 this.emit(TagEvents.KEEP_ALIVE, this);
             }
         }
-    }
-
-    /***************************************************************************
-     * Property Accessors
-     ***************************************************************************/
-    public get value() {
-        if (this.datatype === DataTypes.BOOL || this.isBitIndex) {
-            return this.tag.value === 1 ? true : false;
-        }
-
-        return this.tag.value;
     }
 }
